@@ -465,3 +465,110 @@ Problem
     # |   1 | 0.343… |
     # |   2 | 0.632… |
     # |   4 | 1.000… |
+
+Introducing riko
+-------------------------------
+
+Python Events Calendar
+~~~~~~~~~
+
+.. code-block:: python
+
+    # obtaining data
+    >>> from riko.collections import SyncPipe
+    >>>
+    >>> url = 'www.python.org/events/python-events/'
+    >>> _xpath = '/html/body/div/div[3]/div/section'
+    >>> xpath = '{}/div/div/ul/li'.format(_xpath)
+    >>> xconf = {'url': url, 'xpath': xpath}
+    >>> kwargs = {'emit': False, 'token_key': None}
+    >>> epath = 'h3.a.content'
+    >>> lpath = 'p.span.content'
+    >>> rrule = [{'field': 'h3'}, {'field': 'p'}]
+    >>>
+    >>> flow = (
+    ...     SyncPipe('xpathfetchpage', conf=xconf)
+    ...         .subelement(
+    ...             conf={'path': epath},
+    ...             assign='event', **kwargs)
+    ...         .subelement(
+    ...             conf={'path': lpath},
+    ...             assign='location', **kwargs)
+    ...         .rename(conf={'rule': rrule}))
+    >>> stream = flow.output
+    >>> next(stream)
+    {'event': 'PyDataBCN 2017',
+     'location': 'Barcelona, Spain'}
+    >>> next(stream)
+    {'event': 'PyConWEB 2017',
+     'location': 'Munich, Germany'}
+
+    # transforming data
+    >>> dpath = 'p.time.datetime'
+    >>> frule = {
+    ...     'field': 'date', 'op': 'after',
+    ...     'value':'2017-06-01'}
+    >>>
+    >>> flow = (
+    ...     SyncPipe('xpathfetchpage', conf=xconf)
+    ...         .subelement(
+    ...             conf={'path': epath},
+    ...             assign='event', **kwargs)
+    ...         .subelement(
+    ...             conf={'path': lpath},
+    ...             assign='location', **kwargs)
+    ...         .subelement(
+    ...             conf={'path': dpath},
+    ...             assign='date', **kwargs)
+    ...         .rename(conf={'rule': rrule})
+    ...         .filter(conf={'rule': frule}))
+    >>> stream = flow.output
+    >>> next(stream)
+    {'date': '2017-06-06T00:00:00+00:00',
+     'event': 'PyCon Taiwan 2017',
+     'location': 'Academia Sinica, 128 Academia Road, Section 2, Nankang, Taipei 11529, Taiwan'}
+
+    # Parallel processing
+    >>> from meza.process import merge
+    >>> from riko.collections import SyncCollection
+    >>>
+    >>> _type = 'xpathfetchpage'
+    >>> source = {'url': url, 'type': _type}
+    >>> xpath2 = '{}/div/ul/li'.format(_xpath)
+    >>> sources = [
+    ...     merge([source, {'xpath': xpath}]),
+    ...     merge([source, {'xpath': xpath2}])]
+
+    >>> sc = SyncCollection(sources, parallel=True)
+    >>> flow = (sc.pipe()
+    ...         .subelement(
+    ...             conf={'path': epath},
+    ...             assign='event', **kwargs)
+    ...         .rename(conf={'rule': rrule}))
+    >>>
+    >>> stream = flow.list
+    >>> stream[0]
+    {'event': 'PyDataBCN 2017'}
+
+Exercise #3
+-------------------------------
+
+Problem
+~~~~~~~~~
+
+.. code-block:: python
+
+# fetch the Python jobs rss feed
+# tokenize the "summary" field by newlines ("\n")
+# use "subelement" to extract the location (the first "token")
+# filter for jobs located in the U.S.
+# (use the 'fetch', 'tokenizer', 'subelement', and 'filter' pipes)
+
+from riko.collections import SyncPipe
+url = 'https://www.python.org/jobs/feed/rss'
+
+# write the 'link', 'location', and 'title' fields of each record to a json file
+
+from meza.fntools import dfilter
+from meza.convert import records2json
+from meza.io import write
