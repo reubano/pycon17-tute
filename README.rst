@@ -613,8 +613,6 @@ Problem
 
     # write the 'link', 'location', and 'title' fields of each record to a json file
 
-.. code-block:: python
-
     from meza.fntools import dfilter
     from meza.convert import records2json
     from meza.io import write
