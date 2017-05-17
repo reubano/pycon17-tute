@@ -182,6 +182,23 @@ Problem
     # z = √(x2 + y2 )
 
 
+Solution
+~~~~~~~~~
+
+.. code-block:: python
+
+    from math import sqrt, pow
+
+    def get_hyp(rect):
+        sum_s = sum(pow(r, 2) for r in rect)
+        return sqrt(sum_s)
+
+    def get_ratio(length, width, factor=1):
+        rect = make_rect(length, width)
+        big_rect = grow_rect(rect, factor)
+        return get_hyp(rect) / get_hyp(big_rect)
+
+
 You might not need pandas
 -------------------------
 
