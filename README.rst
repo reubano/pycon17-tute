@@ -180,3 +180,288 @@ Problem
     ratio = function1(x, y, factor)
     hyp = function2(rectangle)
     # z = √(x2 + y2 )
+
+
+You might not need pandas
+-------------------------
+
+csv data
+~~~~~~~~
+
+.. code-block:: python
+
+    >>> from csv import DictReader
+    >>> from io import StringIO
+    >>>
+    >>> csv_str = 'Type,Day\ntutorial,wed\ntalk,fri'
+    >>> csv_str += '\nposter,sun'
+    >>> f = StringIO(csv_str)
+    >>> data = DictReader(f)
+    >>> dict(next(data))
+    {'Day': 'wed', 'Type': 'tutorial'}
+
+json data
+~~~~~~~~
+
+.. code-block:: python
+
+    >>> from urllib.request import urlopen
+    >>> from ijson import items
+    >>>
+    >>> json_url = 'https://api.github.com/users'
+    >>> f = urlopen(json_url)
+    >>> data = items(f, 'item')
+    >>> next(data)
+    {'avatar_url': 'https://avatars3.githubuserco…',
+     'events_url': 'https://api.github.com/users/…',
+     'followers_url': 'https://api.github.com/use…',
+     'following_url': 'https://api.github.com/use…',
+
+xls(x) data
+~~~~~~~~
+
+.. code-block:: python
+
+    >>> from urllib.request import urlretrieve
+    >>> from xlrd import open_workbook
+    >>>
+    >>> xl_url = 'https://github.com/reubano/meza'
+    >>> xl_url += '/blob/master/data/test/test.xlsx'
+    >>> xl_url += '?raw=true'
+    >>> xl_path = urlretrieve(xl_url)[0]
+    >>> book = open_workbook(xl_path)
+    >>> sheet = book.sheet_by_index(0)
+    >>> header = sheet.row_values(0)
+    >>> nrows = range(1, sheet.nrows)
+    >>> rows = (sheet.row_values(x) for x in nrows)
+    >>> data = (
+    ...     dict(zip(header, row)) for row in rows)
+    >>>
+    >>> next(data)
+    {' ': ' ',
+     'Some Date': 30075.0,
+     'Some Value': 234.0,
+     'Sparse Data': 'Iñtërnâtiônàližætiøn',
+     'Unicode Test': 'Ādam'}
+
+grouping data
+~~~~~~~~
+
+.. code-block:: python
+
+    >>> import itertools as it
+    >>> from operator import itemgetter >>>
+    >>> records = [
+    ...     {'item': 'a', 'amount': 200},
+    ...     {'item': 'b', 'amount': 200},
+    ...     {'item': 'c', 'amount': 400}]
+    >>>
+    >>> keyfunc = itemgetter('amount')
+    >>> _sorted = sorted(records, key=keyfunc)
+    >>> groups = it.groupby(_sorted, keyfunc)
+    >>> data = ((key, list(g)) for key, g in groups)
+    >>> next(data)
+    (200, [{'amount': 200, 'item': 'a'},
+           {'amount': 200, 'item': 'b'}])
+
+aggregating data
+~~~~~~~~
+
+.. code-block:: python
+
+    >>> key = 'amount'
+    >>> value = sum(r.get(key, 0) for r in records)
+    >>> {**records[0], key: value}
+    {'a': 'item', 'amount': 800}
+
+csv files
+~~~~~~~~
+
+.. code-block:: python
+
+    >>> from csv import DictWriter
+    >>>
+    >>> records = [
+    ...     {'item': 'a', 'amount': 200},
+    ...     {'item': 'b', 'amount': 400}]
+    >>>
+    >>> header = list(records[0].keys())
+    >>> with open('output.csv', 'w') as f:
+    ...     w = DictWriter(f, header)
+    ...     w.writeheader()
+    ...     w.writerows(records)
+
+Introducing meza
+-------------------------------
+
+csv data
+~~~~~~~~~
+
+.. code-block:: python
+
+    >>> from meza.io import read
+    >>>
+    >>> records = read('output.csv')
+    >>> next(records)
+    {'amount': '200', 'item': 'a'}
+
+JSON data
+~~~~~~~~~
+
+.. code-block:: python
+
+    >>> from meza.io import read_json
+    >>>
+    >>> f = urlopen(json_url)
+    >>> records = read_json(f, path='item')
+    >>> next(records)
+    {'avatar_url': 'https://avatars3.githubuserco…',
+     'events_url': 'https://api.github.com/users/…',
+     'followers_url': 'https://api.github.com/use…',
+     'following_url': 'https://api.github.com/use…',
+     …
+    }
+
+xlsx data
+~~~~~~~~~
+
+.. code-block:: python
+
+    >>> from meza.io import read_xls
+    >>>
+    >>> records = read_xls(xl_path)
+    >>> next(records)
+    {'Some Date': '1982-05-04',
+     'Some Value': '234.0',
+     'Sparse Data': 'Iñtërnâtiônàližætiøn',
+     'Unicode Test': 'Ādam'}
+
+aggregation
+~~~~~~~~~
+
+.. code-block:: python
+
+    >>> from meza.process import aggregate
+    >>>
+    >>> records = [
+    ...     {'a': 'item', 'amount': 200},
+    ...     {'a': 'item', 'amount': 300},
+    ...     {'a': 'item', 'amount': 400}]
+    ...
+    >>> aggregate(records, 'amount', sum)
+    {'a': 'item', 'amount': 900}
+
+merging
+~~~~~~~~~
+
+.. code-block:: python
+
+    >>> from meza.process import merge
+    >>>
+    >>> records = [
+    ...     {'a': 200}, {'b': 300}, {'c': 400}]
+    >>>
+    >>> merge(records)
+    {'a': 200, 'b': 300, 'c': 400}
+
+grouping
+~~~~~~~~~
+
+.. code-block:: python
+
+    >>> from meza.process import group
+    >>>
+    >>> records = [
+    ...     {'item': 'a', 'amount': 200},
+    ...     {'item': 'a', 'amount': 200},
+    ...     {'item': 'b', 'amount': 400}]
+    >>>
+    >>> groups = group(records, 'item')
+    >>> next(groups)
+
+normalization
+~~~~~~~~~
+
+.. code-block:: python
+
+    >>> from meza.process import normalize
+    >>>
+    >>> records = [
+    ...     {
+    ...         'color': 'blue', 'setosa': 5,
+    ...         'versi': 6
+    ...     }, {
+    ...         'color': 'red', 'setosa': 3,
+    ...         'versi': 5
+    ...     }]
+    >>> kwargs = {
+    ...     'data': 'length', 'column':'species',
+    ...     'rows': ['setosa', 'versi']}
+    >>>
+    >>> data = normalize(records, **kwargs)
+    >>> next(data)
+    {'color': 'blue', 'length': 5, 'species': 'setosa'}
+
+csv files
+~~~~~~~~~
+
+.. code-block:: python
+
+    >>> from meza import convert as cv
+    >>> from meza.io import write
+    >>>
+    >>> records = [
+    ...     {'item': 'a', 'amount': 200},
+    ...     {'item': 'b', 'amount': 400}]
+    >>>
+    >>> csv = cv.records2csv(records)
+    >>> write('output.csv', csv)
+
+JSON files
+~~~~~~~~~
+
+.. code-block:: python
+
+    >>> json = cv.records2json(records)
+    >>> write('output.json', json)
+
+Exercise #2
+-------------------------------
+
+Problem
+~~~~~~~~~
+
+.. code-block:: python
+
+    # create a list of dicts with keys "factor", "length", "width", and "ratio" (for factors 1 - 20)
+
+    records = [
+        {
+            'factor': 1, 'length': 2, 'width': 2,
+            'ratio': 1.0
+        }, {
+            'factor': 2, 'length': 2, 'width': 2,
+            'ratio': 0.6324…
+        }, {
+            'factor': 3, 'length': 2, 'width': 2,
+            'ratio': 0.4472…}
+    ]
+
+    # group the records by quartiles of the "ratio" value, and aggregate each group by the median "ratio"
+
+    from statistics import median
+    from meza.process import group
+
+    records[0]['ratio'] // .25
+
+    # write the records out to a csv file (1 row per group)
+
+    from meza.convert import records2csv
+    from meza.io import write
+
+    # | key | median |
+    # | --- | ------ |
+    # |   0 | 0.108… |
+    # |   1 | 0.343… |
+    # |   2 | 0.632… |
+    # |   4 | 1.000… |
