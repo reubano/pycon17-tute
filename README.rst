@@ -628,7 +628,6 @@ Solution
     >>> url = 'https://www.python.org/jobs/feed/rss'
     >>> fetch_conf = {'url': url}
     >>> tconf = {'delimiter': '\n'}
-    >>> rule = {'field': 'location', 'op': 'contains'}
     >>> frule = [
     ...     {'field': 'location', 'op': 'contains', 'value': 'usa'},
     ...     {'field': 'location', 'op': 'contains', 'value': 'united states'}]
