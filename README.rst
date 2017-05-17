@@ -613,6 +613,8 @@ url = 'https://www.python.org/jobs/feed/rss'
 
 # write the 'link', 'location', and 'title' fields of each record to a json file
 
-from meza.fntools import dfilter
-from meza.convert import records2json
-from meza.io import write
+.. code-block:: python
+
+    from meza.fntools import dfilter
+    from meza.convert import records2json
+    from meza.io import write
