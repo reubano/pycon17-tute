@@ -483,6 +483,33 @@ Problem
     # |   2 | 0.632… |
     # |   4 | 1.000… |
 
+Solution
+~~~~~~~~~
+
+.. code-block:: python
+
+    >>> from statistics import median
+    >>> from meza import process as pr
+    >>>
+    >>> def aggregator(group):
+    ...     ratios = (g['ratio'] for g in group)
+    ...     return median(ratios)
+    >>>
+    >>> kwargs = {'aggregator': aggregator}
+    >>> gkeyfunc = lambda r: r['ratio'] // .25
+    >>> groups = pr.group(
+    ...     records, gkeyfunc, **kwargs)
+    >>>
+    >>> from meza import convert as cv
+    >>> from meza.io import write
+    >>>
+    >>> results = [
+    ...     {'key': k, 'median': g}
+    ...     for k, g in groups]
+    >>>
+    >>> csv = cv.records2csv(results)
+    >>> write('results.csv', csv)
+
 Introducing riko
 -------------------------------
 
