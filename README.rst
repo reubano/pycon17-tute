@@ -617,3 +617,55 @@ Problem
     from meza.fntools import dfilter
     from meza.convert import records2json
     from meza.io import write
+
+Solution
+~~~~~~~~~
+
+.. code-block:: python
+
+    >>> from riko.collections import SyncPipe
+    >>>
+    >>> url = 'https://www.python.org/jobs/feed/rss'
+    >>> fetch_conf = {'url': url}
+    >>> tconf = {'delimiter': '\n'}
+    >>> rule = {'field': 'location', 'op': 'contains'}
+    >>> frule = [
+    ...     {'field': 'location', 'op': 'contains', 'value': 'usa'},
+    ...     {'field': 'location', 'op': 'contains', 'value': 'united states'}]
+    >>>
+    >>> fconf = {'rule': frule, 'combine': 'or'}
+    >>> kwargs = {'emit': False, 'token_key': None}
+    >>> path = 'location.content.0'
+    >>> rrule = [
+    ...     {'field': 'summary'},
+    ...     {'field': 'summary_detail'},
+    ...     {'field': 'author'},
+    ...     {'field': 'links'}]
+    >>>
+    >>> flow = (SyncPipe('fetch', conf=fetch_conf)
+    ...    .tokenizer(conf=tconf, field='summary', assign='location')
+    ...    .subelement(conf={'path': path}, assign='location', **kwargs)
+    ...    .filter(conf=fconf)
+    ...    .rename(conf={'rule': rrule}))
+    >>>
+    >>> stream = flow.list
+    >>> stream[0]
+    {'dc:creator': None,
+     'id': 'https://python.org/jobs/2570/',
+     'link': 'https://python.org/jobs/2570/',
+     'location': 'College Park,MD,USA',
+     'title': 'Python Developer - MarketSmart',
+     'title_detail': 'Python Developer - MarketSmart',
+     'y:published': None,
+     'y:title': 'Python Developer - MarketSmart'}
+    >>>
+    >>> from meza import convert as cv
+    >>> from meza.fntools import dfilter
+    >>> from meza.io import write
+    >>>
+    >>> fields = ['link', 'location', 'title']
+    >>> records = [
+    ...     dfilter(item, blacklist=fields, inverse=True) for item in stream]
+    >>>
+    >>> json = cv.records2json(records)
+    >>> write('pyjobs.json', json)
