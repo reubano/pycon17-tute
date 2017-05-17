@@ -602,16 +602,16 @@ Problem
 
 .. code-block:: python
 
-# fetch the Python jobs rss feed
-# tokenize the "summary" field by newlines ("\n")
-# use "subelement" to extract the location (the first "token")
-# filter for jobs located in the U.S.
-# (use the 'fetch', 'tokenizer', 'subelement', and 'filter' pipes)
+    # fetch the Python jobs rss feed
+    # tokenize the "summary" field by newlines ("\n")
+    # use "subelement" to extract the location (the first "token")
+    # filter for jobs located in the U.S.
+    # (use the 'fetch', 'tokenizer', 'subelement', and 'filter' pipes)
 
-from riko.collections import SyncPipe
-url = 'https://www.python.org/jobs/feed/rss'
+    from riko.collections import SyncPipe
+    url = 'https://www.python.org/jobs/feed/rss'
 
-# write the 'link', 'location', and 'title' fields of each record to a json file
+    # write the 'link', 'location', and 'title' fields of each record to a json file
 
 .. code-block:: python
 
