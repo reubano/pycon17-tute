@@ -1,6 +1,15 @@
 Using Functional Programming for efficient Data Processing and Analysis
 =======================================================================
 
+Extra materials
+---------------
+
+- `video`_
+- `slides`_
+
+.. _video: https://www.youtube.com/watch?v=9kDUTJahXBM&index=3&list=PL5fKnSm4M_VWxdWRwNuXSxQ3TsYFG4C_l
+.. _slides: https://speakerdeck.com/reubano/using-functional-programming-for-efficient-data-processing-and-analysis
+
 What is functional programming?
 -------------------------------
 
